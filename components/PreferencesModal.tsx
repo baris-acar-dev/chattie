@@ -284,7 +284,7 @@ export default function PreferencesModal({ user, isOpen, onClose, onPreferencesU
               Your API key should start with "AIza" and be about 39 characters long.
               <br />
               <a 
-                href="https://aistudio.google.com/" 
+                href="https://aistudio.google.com/app/apikey" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="underline ml-1 font-medium"

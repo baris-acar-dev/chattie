@@ -13,13 +13,13 @@ A comprehensive Next.js chatbot application with local Ollama AI models, cloud A
 
 ### 👥 **User Experience & Management**
 - 🔐 **Multi-user authentication** with secure login/logout
-- � **User profiles** with personal conversations and settings
+- 👤 **User profiles** with personal conversations and settings
 - 🚪 **Guest access** for immediate testing and exploration
 - 📱 **Fully responsive design** - works perfectly on mobile devices
 - 🌙 **Dark/Light mode** with automatic theme detection
 - ⚡ **Beautiful animations** with Framer Motion and GSAP loading screens
 
-### � **Advanced Conversation Management**
+### 🗪 **Advanced Conversation Management**
 - 🧠 **Smart conversation titles** - Auto-generated from AI responses using clean content (excludes thinking tokens)
 - ✏️ **Inline title editing** - Click to edit conversation titles directly
 - 🔍 **Conversation search** - Find conversations by title and content
@@ -42,7 +42,7 @@ A comprehensive Next.js chatbot application with local Ollama AI models, cloud A
 - � **Privacy controls** - Enable/disable web features per conversation
 
 ### 🎭 **Prompt Templates & Personas**
-- 👨‍� **Custom AI personas** for different use cases
+- 👨‍ **Custom AI personas** for different use cases
 - 📝 **Template management** with create, edit, delete functionality
 - 🏷️ **Tagging system** for easy template organization
 - 📊 **Usage tracking** to see which templates are most effective
@@ -51,7 +51,7 @@ A comprehensive Next.js chatbot application with local Ollama AI models, cloud A
 ### 💭 **Enhanced Message Display**
 - 🧠 **Thinking message visualization** - Shows AI reasoning process separately
 - 📱 **Responsive chat bubbles** that adapt to screen size
-- � **Source citations** for RAG responses with document references
+-  ℹ  **Source citations** for RAG responses with document references
 - ⏰ **Timestamps** with human-readable relative time
 - 🎨 **Rich markdown rendering** with syntax highlighting
 
@@ -97,7 +97,7 @@ Before running this application, ensure you have:
 ### 1. Clone and Install Dependencies
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/baris-acar-dev/chattie
 cd chattie
 npm install
 ```
@@ -197,7 +197,7 @@ Visit `http://localhost:3000` to use the application.
 4. Type your message and press Enter
 5. The AI will respond using your selected model and enabled features
 
-### � **Smart Conversation Management**
+### **Smart Conversation Management**
 
 Chattie now includes advanced conversation management features that make it easy to organize and find your chat history:
 
@@ -234,7 +234,7 @@ Chattie now includes advanced conversation management features that make it easy
 4. **Group by date** by clicking the calendar toggle for better organization
 5. **Delete conversations** using the trash icon (hover to reveal on desktop)
 
-### �📚 Knowledge Base (RAG) - Step by Step Guide
+### 📚 Knowledge Base (RAG) - Step by Step Guide
 
 #### **Step 1: Upload Documents**
 1. Navigate to the **Knowledge Base** page by clicking on the knowledge icon or visiting `/knowledge`
@@ -359,12 +359,12 @@ Once your knowledge base is enabled, you can ask various types of questions. The
 - **Multi-User:** Switch between users by logging out and signing in with different email
 - **Guest Access:** Quick guest accounts for testing and demonstrations
 
-### 🎭 Prompt Templates System
+### 🎭 Persona (Prompt Templates) System
 
-#### **What are Prompt Templates?**
-Prompt templates allow you to create custom AI personas and behaviors for different use cases. Instead of always getting a general assistant, you can have specialized AI assistants for specific tasks.
+#### **What are Personas?**
+Personas allow you to create custom AI personas and behaviors for different use cases. Instead of always getting a general assistant, you can have specialized AI assistants for specific tasks.
 
-#### **Built-in Templates:**
+#### **Built-in Personas:**
 - 🤖 **General Assistant** - Helpful, harmless, and honest AI assistant
 - 📝 **Creative Storyteller** - Imaginative storytelling with vivid narratives
 - 💻 **Technical Expert** - Programming and engineering guidance
@@ -372,8 +372,8 @@ Prompt templates allow you to create custom AI personas and behaviors for differ
 - 🎓 **Educational Tutor** - Patient teaching and explanations
 - 🔍 **Research Analyst** - Thorough research and data analysis
 
-#### **Using Prompt Templates:**
-1. **Select a Template:**
+#### **Using Personas:**
+1. **Select a Persona:**
    - In the chat interface, click the template dropdown above the message input
    - Choose from available templates or select "No Template" for default behavior
    - The selected template appears as a purple indicator
@@ -384,12 +384,12 @@ Prompt templates allow you to create custom AI personas and behaviors for differ
    - Maintains consistency throughout the conversation
    - Templates are saved with each conversation
 
-#### **Creating Custom Templates:**
-1. **Access Template Manager:**
-   - Click the "Templates" button in the chat header
-   - Or use the template dropdown and select "Manage Templates"
+#### **Creating Custom Personas:**
+1. **Access Persona Manager:**
+   - Click the "Personas" button in the chat header
+   - Or use the template dropdown and select "Manage Personas"
 
-2. **Template Components:**
+2. **Persona Components:**
    - **Name & Description:** Identify your template's purpose
    - **Role/Persona:** Define the AI's character and expertise
    - **Input Format:** Guide users on how to interact
@@ -398,23 +398,23 @@ Prompt templates allow you to create custom AI personas and behaviors for differ
    - **Tags:** Categorize for easy filtering
    - **Model Settings:** Temperature and token limits
 
-3. **Template Management:**
+3. **Persona Management:**
    - **Create:** Design templates for specific use cases
    - **Edit:** Modify existing custom templates
    - **Delete:** Remove templates you no longer need
    - **Search & Filter:** Find templates by name or tags
    - **Usage Tracking:** See how often templates are used
 
-#### **Advanced Template Features:**
+#### **Advanced Persona Features:**
 - **Model-Specific Settings:** Each template can have optimal temperature/token settings
-- **Public Templates:** Share templates with other users (when enabled)
+- **Public Personas:** Share Personas with other users (when enabled)
 - **Template Categories:** Organize by tags like "business", "creative", "technical"
 - **Usage Analytics:** Track which templates are most effective
 - **Template Inheritance:** Build variations of successful templates
 
 #### **Example Use Cases:**
 
-**📧 Email Assistant Template:**
+**📧 Email Assistant:**
 - Role: Professional email writer with business communication expertise
 - Input Format: Bullet points or rough notes about the email's purpose
 - Output Format: Well-structured, professional emails with appropriate tone

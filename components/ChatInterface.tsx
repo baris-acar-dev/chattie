@@ -390,41 +390,56 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
             </div>
             
             <div className="space-y-3">
-              <div className="w-full">
-                <PersonaSelector
-                  selectedPersona={selectedTemplate}
-                  onPersonaChange={handleTemplateChange}
-                  userId={user.id}
-                />
+              <div className="flex items-center space-x-2">
+                <div className="flex-1">
+                  <PersonaSelector
+                    selectedPersona={selectedTemplate}
+                    onPersonaChange={handleTemplateChange}
+                    userId={user.id}
+                  />
+                </div>
+                <button
+                  onClick={() => setShowTemplateManager(true)}
+                  className="flex items-center justify-center w-10 h-10 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
+                  title="Manage Personas"
+                >
+                  <SparklesIcon className="w-5 h-5" />
+                </button>
               </div>
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="mobile-web-scraping"
-                    checked={webScrapingEnabled}
-                    onChange={(e) => setWebScrapingEnabled(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-600 focus:ring-2"
-                  />
-                  <label htmlFor="mobile-web-scraping" className="flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300">
-                    <GlobeAltIcon className="w-4 h-4" />
-                    <span>Web Scraping</span>
-                  </label>
+              <div className="flex items-center justify-center space-x-4">
+                <div className="relative">
+                  <button
+                    onClick={() => setWebScrapingEnabled(!webScrapingEnabled)}
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
+                      webScrapingEnabled 
+                        ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30' 
+                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                    title={webScrapingEnabled ? "Web Scraping: ON" : "Web Scraping: OFF"}
+                  >
+                    <GlobeAltIcon className="w-5 h-5" />
+                  </button>
+                  {webScrapingEnabled && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                  )}
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="mobile-rag-toggle"
-                    checked={ragEnabled}
-                    onChange={(e) => setRagEnabled(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-600 focus:ring-2"
-                  />
-                  <label htmlFor="mobile-rag-toggle" className="flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300">
-                    <BookOpenIcon className="w-4 h-4" />
-                    <span>Knowledge Base</span>
-                  </label>
+                <div className="relative">
+                  <button
+                    onClick={() => setRagEnabled(!ragEnabled)}
+                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
+                      ragEnabled 
+                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30' 
+                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                    title={ragEnabled ? "Knowledge Base: ON" : "Knowledge Base: OFF"}
+                  >
+                    <BookOpenIcon className="w-5 h-5" />
+                  </button>
+                  {ragEnabled && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                  )}
                 </div>
               </div>
 
@@ -514,32 +529,38 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
               />
               
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="web-scraping-toggle"
-                    checked={webScrapingEnabled}
-                    onChange={(e) => setWebScrapingEnabled(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-600 focus:ring-2"
-                  />
-                  <label htmlFor="web-scraping-toggle" className="flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300">
+                <div className="relative">
+                  <button
+                    onClick={() => setWebScrapingEnabled(!webScrapingEnabled)}
+                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
+                      webScrapingEnabled 
+                        ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30' 
+                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                    title={webScrapingEnabled ? "Web Scraping: ON" : "Web Scraping: OFF"}
+                  >
                     <GlobeAltIcon className="w-4 h-4" />
-                    <span>Web Scraping</span>
-                  </label>
+                  </button>
+                  {webScrapingEnabled && (
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border border-white dark:border-gray-900"></div>
+                  )}
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="rag-toggle"
-                    checked={ragEnabled}
-                    onChange={(e) => setRagEnabled(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-600 focus:ring-2"
-                  />
-                  <label htmlFor="rag-toggle" className="flex items-center space-x-1 text-sm text-gray-700 dark:text-gray-300">
+                <div className="relative">
+                  <button
+                    onClick={() => setRagEnabled(!ragEnabled)}
+                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
+                      ragEnabled 
+                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30' 
+                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                    title={ragEnabled ? "Knowledge Base: ON" : "Knowledge Base: OFF"}
+                  >
                     <BookOpenIcon className="w-4 h-4" />
-                    <span>Knowledge Base</span>
-                  </label>
+                  </button>
+                  {ragEnabled && (
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border border-white dark:border-gray-900"></div>
+                  )}
                 </div>
               </div>
             </div>
