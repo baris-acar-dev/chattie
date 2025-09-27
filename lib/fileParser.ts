@@ -1,4 +1,3 @@
-import pdfjsLib from 'pdf-parse'
 import * as mammoth from 'mammoth'
 import * as ExcelJS from 'exceljs'
 
@@ -64,7 +63,7 @@ export class FileParserService {  // Helper function to safely parse dates from 
     
     switch (fileType) {
       case 'pdf':
-        return await this.parsePDF(file)
+        return await this.safeParsePDF(file)
       case 'docx':
         return await this.parseDOCX(file)
       case 'xlsx':
@@ -77,15 +76,34 @@ export class FileParserService {  // Helper function to safely parse dates from 
     }
   }
   /**
-   * Parse PDF files
+   * Parse PDF files with fallback handling
    */
   private async parsePDF(file: File): Promise<ParsedDocument> {
     try {
+      // Dynamic import to avoid initialization issues
+      let pdfParse
+      try {
+        const pdfModule = await import('pdf-parse')
+        pdfParse = pdfModule.default || pdfModule
+      } catch (importError) {
+        console.error('Failed to import pdf-parse:', importError)
+        throw new Error('PDF parsing library is not available. Please ensure pdf-parse is properly installed.')
+      }
+      
+      if (!pdfParse || typeof pdfParse !== 'function') {
+        throw new Error('PDF parser is not properly initialized')
+      }
+      
       const arrayBuffer = await file.arrayBuffer()
       // Use Buffer.from instead of deprecated Buffer() constructor
       const buffer = Buffer.from(arrayBuffer)
       
-      const data = await pdfjsLib(buffer, {
+      // Validate buffer
+      if (!buffer || buffer.length === 0) {
+        throw new Error('PDF file appears to be empty or corrupted')
+      }
+      
+      const data = await pdfParse(buffer, {
         // Add options for better PDF parsing
         max: 0, // No limit on pages
         version: 'v1.10.100' // Specify version for stability
@@ -248,6 +266,32 @@ export class FileParserService {  // Helper function to safely parse dates from 
   isSupported(fileName: string): boolean {
     const fileType = this.getFileType(fileName)
     return this.getSupportedTypes().includes(fileType)
+  }
+
+  /**
+   * Safe PDF parsing with better error handling
+   */
+  private async safeParsePDF(file: File): Promise<ParsedDocument> {
+    try {
+      return await this.parsePDF(file)
+    } catch (error) {
+      console.warn('PDF parsing failed, providing basic metadata:', error)
+      
+      // Fallback: return basic file info without content parsing
+      const basicContent = `This PDF file (${file.name}) could not be parsed automatically. Please try converting it to text format or use a different PDF file.`
+      
+      return {
+        content: basicContent,
+        metadata: {
+          fileName: file.name,
+          fileType: 'pdf',
+          parseError: true,
+          originalError: error instanceof Error ? error.message : 'Unknown error',
+          fileSize: file.size,
+          lastModified: new Date(file.lastModified).toISOString()
+        }
+      }
+    }
   }
 }
 

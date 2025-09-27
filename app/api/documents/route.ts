@@ -1,26 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ragService } from '@/lib/rag'
-// import { fileParserService } from '@/lib/fileParser'
-
-// Temporary simple file parser to avoid dependency issues
-const simpleFileParser = {
-  isSupported: (fileName: string) => {
-    const extension = fileName.toLowerCase().split('.').pop()
-    return ['txt', 'md', 'json'].includes(extension || '')
-  },
-  getSupportedTypes: () => ['txt', 'md', 'json'],
-  parseFile: async (file: File) => {
-    const content = await file.text()
-    return {
-      content,
-      metadata: {
-        fileName: file.name,
-        fileType: file.type || 'text/plain',
-        fileSize: file.size
-      }
-    }
-  }
-}
+import { fileParserService } from '@/lib/fileParser'
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,9 +23,9 @@ export async function POST(request: NextRequest) {
 
     // Check if file type is supported
     try {
-      if (!simpleFileParser.isSupported(file.name)) {
+      if (!fileParserService.isSupported(file.name)) {
         return NextResponse.json(
-          { error: `Unsupported file type. Supported formats: ${simpleFileParser.getSupportedTypes().join(', ')}` },
+          { error: `Unsupported file type. Supported formats: ${fileParserService.getSupportedTypes().join(', ')}` },
           { 
             status: 400,
             headers: { 'Content-Type': 'application/json' }
@@ -67,9 +47,25 @@ export async function POST(request: NextRequest) {
     console.log('Parsing file content...')
     let parsedDocument
     try {
-      parsedDocument = await simpleFileParser.parseFile(file)
+      parsedDocument = await fileParserService.parseFile(file)
     } catch (parseError) {
       console.error('File parsing error:', parseError)
+      
+      // If it's a PDF parsing error, provide more specific guidance
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        return NextResponse.json(
+          { 
+            error: 'Failed to parse PDF file', 
+            details: parseError instanceof Error ? parseError.message : 'PDF parsing library error',
+            suggestion: 'Try converting the PDF to text or using a different PDF file. Some PDFs may be corrupted or use unsupported features.'
+          },
+          { 
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        )
+      }
+      
       return NextResponse.json(
         { 
           error: 'Failed to parse file', 
