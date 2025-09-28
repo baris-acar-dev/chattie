@@ -26,13 +26,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const conversations = await prisma.conversation.findMany({
+    const conversations = await (prisma as any).conversation.findMany({
       where: { userId: user.id },
       include: {
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1
-        }
+        },
+        folder: true
       },
       orderBy: { updatedAt: 'desc' }
     })

@@ -49,6 +49,13 @@ export default function HomePage() {
     handleAutoLogin()
   }, [session, status, router, autoLoginAttempted])
 
+  // Additional useEffect to handle redirect when auto-login fails
+  useEffect(() => {
+    if (!session && autoLoginAttempted && status !== 'loading') {
+      router.push('/auth/signin')
+    }
+  }, [session, autoLoginAttempted, status, router])
+
   const handleLoadingComplete = () => {
     setIsLoading(false)
   }
@@ -58,9 +65,8 @@ export default function HomePage() {
     return <AppLoader onLoadingComplete={handleLoadingComplete} />
   }
 
-  // If auto-login failed and no session, redirect to sign-in
+  // If auto-login failed and no session, show loading while redirect happens
   if (!session && autoLoginAttempted) {
-    router.push('/auth/signin')
     return <AppLoader onLoadingComplete={handleLoadingComplete} />
   }
 

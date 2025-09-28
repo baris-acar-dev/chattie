@@ -45,13 +45,24 @@ interface Message {
   metadata?: any
 }
 
+interface Folder {
+  id: string
+  name: string
+  userId: string
+  color?: string
+  createdAt: string
+  updatedAt: string
+}
+
 interface Conversation {
   id: string
   title: string
   model: string
+  folderId?: string
   createdAt: string
   updatedAt: string
   messages: Message[]
+  folder?: Folder
 }
 
 interface PromptTemplate {

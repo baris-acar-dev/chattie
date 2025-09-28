@@ -19,6 +19,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   conversations   Conversation[]
+  folders         Folder[]
   sessions        Session[]
   accounts        Account[]
   preferences     UserPreferences?
@@ -70,15 +71,32 @@ model Conversation {
   id        String   @id @default(cuid())
   title     String?
   userId    String
+  folderId  String?  // Add folder relationship
   model     String   @default("llama2")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder    Folder?                @relation(fields: [folderId], references: [id], onDelete: SetNull)
   messages  Message[]
   templates ConversationTemplate[]
 
   @@map("conversations")
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  color     String?  // For UI customization (e.g., 'blue', 'green', 'red')
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+
+  @@unique([userId, name]) // Prevent duplicate folder names per user
+  @@map("folders")
 }
 
 model Message {

@@ -7,12 +7,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const conversation = await prisma.conversation.findUnique({
+    const conversation = await (prisma as any).conversation.findUnique({
       where: { id },
       include: {
         messages: {
           orderBy: { createdAt: 'asc' }
-        }
+        },
+        folder: true
       }
     })
 
@@ -39,7 +40,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await prisma.conversation.delete({
+    await (prisma as any).conversation.delete({
       where: { id }
     })
 
@@ -61,7 +62,7 @@ export async function PATCH(
     const { id } = await params
     const { title } = await request.json()
 
-    const conversation = await prisma.conversation.update({
+    const conversation = await (prisma as any).conversation.update({
       where: { id },
       data: { title }
     })
