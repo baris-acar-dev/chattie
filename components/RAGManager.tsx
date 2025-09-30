@@ -32,7 +32,11 @@ interface SearchResult {
   relevanceScore: number
 }
 
-export default function RAGManager() {
+interface RAGManagerProps {
+  onDocumentsUpdated?: () => void
+}
+
+export default function RAGManager({ onDocumentsUpdated }: RAGManagerProps = {}) {
   const [documents, setDocuments] = useState<Document[]>([])
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -111,6 +115,7 @@ export default function RAGManager() {
 
       if (result.success) {
         await loadDocuments()
+        onDocumentsUpdated?.() // Notify parent component
         alert(`Document uploaded successfully! ${fileExtension.toUpperCase()} file processed and added to knowledge base.`)
       } else {
         alert(`Upload failed: ${result.error || 'Unknown error'}`)
@@ -135,6 +140,7 @@ export default function RAGManager() {
 
       if (response.ok) {
         await loadDocuments()
+        onDocumentsUpdated?.() // Notify parent component
         alert('Document deleted successfully!')
       } else {
         const error = await response.json()

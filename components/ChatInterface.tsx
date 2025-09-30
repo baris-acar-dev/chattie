@@ -22,6 +22,7 @@ import ThemeToggle from './ThemeToggle'
 import DocumentSelector from './DocumentSelector'
 import PersonaSelector from './PersonaSelector'
 import PromptTemplateManager from './PromptTemplateManager'
+import RAGManager from './RAGManager'
 import { UserMenu } from './UserMenu'
 
 interface Model {
@@ -102,6 +103,8 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<PromptTemplate | null>(null)
   const [showTemplateManager, setShowTemplateManager] = useState(false)
+  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false)
+  const [documentRefreshTrigger, setDocumentRefreshTrigger] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -114,6 +117,11 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
   }, [currentConversation?.messages])
   const handleTemplateChange = (template: any) => {
     setSelectedTemplate(template)
+  }
+
+  const handleDocumentsUpdated = () => {
+    // Trigger refresh of DocumentSelector
+    setDocumentRefreshTrigger(prev => prev + 1)
   }
 
   const scrollToBottom = () => {
@@ -389,14 +397,13 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                 >
                   <Cog6ToothIcon className="w-4 h-4" />
                 </button>
-                <a
-                  href="/knowledge"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => setShowKnowledgeBase(true)}
                   className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  title="Manage Knowledge Base"
                 >
                   <BookOpenIcon className="w-4 h-4" />
-                </a>
+                </button>
               </div>
             </div>
             
@@ -468,6 +475,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                       }
                     }}
                     disabled={isLoading}
+                    refreshTrigger={documentRefreshTrigger}
                   />
                 </div>
               )}
@@ -507,16 +515,14 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                 <SparklesIcon className="w-4 h-4" />
                 <span>Manage Personas</span>
               </button>
-              <a
-                href="/knowledge"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => setShowKnowledgeBase(true)}
                 className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-2 py-1 rounded-md transition-colors"
                 title="Manage Knowledge Base"
               >
                 <BookOpenIcon className="w-4 h-4" />
                 <span>Knowledge Base</span>
-              </a>
+              </button>
               <button
                 onClick={() => setPreferencesOpen(true)}
                 className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-2 py-1 rounded-md transition-colors"
@@ -590,6 +596,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                     }
                   }}
                   disabled={isLoading}
+                  refreshTrigger={documentRefreshTrigger}
                 />
               </div>
             )}
@@ -688,6 +695,42 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                 onTemplateSelect={handleTemplateChange}
                 onClose={() => setShowTemplateManager(false)}
               />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Knowledge Base Modal */}
+      <AnimatePresence>
+        {showKnowledgeBase && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-lg w-full h-full max-w-7xl max-h-[90vh] overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Knowledge Base Management
+                </h2>
+                <button
+                  onClick={() => setShowKnowledgeBase(false)}
+                  className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="h-full overflow-auto">
+                <RAGManager onDocumentsUpdated={handleDocumentsUpdated} />
+              </div>
             </motion.div>
           </motion.div>
         )}

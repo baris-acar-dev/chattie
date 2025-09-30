@@ -22,13 +22,15 @@ interface DocumentSelectorProps {
   onSelectionChange: (documentIds: string[]) => void
   onDocumentsLoaded?: (documents: Document[]) => void
   disabled?: boolean
+  refreshTrigger?: number // Increment this prop to trigger a refresh
 }
 
 export default function DocumentSelector({ 
   selectedDocuments, 
   onSelectionChange, 
   onDocumentsLoaded,
-  disabled = false 
+  disabled = false,
+  refreshTrigger = 0
 }: DocumentSelectorProps) {
   const [documents, setDocuments] = useState<Document[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -54,6 +56,12 @@ export default function DocumentSelector({
   useEffect(() => {
     loadDocuments()
   }, [])
+
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      loadDocuments()
+    }
+  }, [refreshTrigger])
 
   const loadDocuments = async () => {
     try {
