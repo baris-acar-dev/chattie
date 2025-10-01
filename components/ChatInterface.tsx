@@ -124,6 +124,24 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
     setDocumentRefreshTrigger(prev => prev + 1)
   }
 
+  const updateConversationTitle = (conversationId: string, newTitle: string) => {
+    // Update the conversation title in the local state without refetching all conversations
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, title: newTitle }
+          : conv
+      )
+    )
+    
+    // Update current conversation if it's the one being updated
+    if (currentConversation?.id === conversationId) {
+      setCurrentConversation(prev => 
+        prev ? { ...prev, title: newTitle } : prev
+      )
+    }
+  }
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -280,6 +298,11 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
             }
           ]
         }))
+        
+        // Update conversation title if it was generated/updated
+        if (data.updatedTitle && data.updatedTitle !== currentConversation.title) {
+          updateConversationTitle(currentConversation.id, data.updatedTitle)
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error)

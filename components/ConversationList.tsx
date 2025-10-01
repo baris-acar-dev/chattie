@@ -611,6 +611,7 @@ export default function ConversationList({
                     startEditing(conversation)
                   }}
                   className="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                  title="Edit title"
                 >
                   <PencilIcon className="w-4 h-4" />
                 </button>

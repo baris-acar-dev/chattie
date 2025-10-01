@@ -29,52 +29,100 @@ function extractCleanResponse(response: string): string {
 
 // Helper function to generate a conversation title from content
 function generateConversationTitle(userMessage: string, aiResponse: string): string {
-  // Try to extract the main topic from the user message and AI response
-  const combinedText = `${userMessage} ${aiResponse}`.toLowerCase()
+  const cleanResponse = extractCleanResponse(aiResponse)
   
-  // Remove common words and get meaningful terms
-  const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'how', 'what', 'when', 'where', 'why', 'who', 'which', 'can', 'could', 'would', 'should', 'do', 'does', 'did', 'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their'])
+  // Enhanced title generation with better context understanding
+  const userMsg = userMessage.toLowerCase().trim()
+  const aiMsg = cleanResponse.toLowerCase().trim()
   
-  const words = combinedText
-    .replace(/[^\w\s]/g, ' ')
-    .split(/\s+/)
-    .filter(word => word.length > 2 && !stopWords.has(word))
-  
-  // Get the most significant words (first few from user message, avoiding too technical terms)
-  const significantWords = []
-  const userWords = userMessage.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/)
-    .filter(word => word.length > 2 && !stopWords.has(word))
-  
-  // Prioritize words from user message
-  for (const word of userWords.slice(0, 3)) {
-    if (!stopWords.has(word)) {
-      significantWords.push(word.charAt(0).toUpperCase() + word.slice(1))
-    }
-  }
-  
-  // If we don't have enough words, add from AI response
-  if (significantWords.length < 2) {
-    const aiWords = aiResponse.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/)
-      .filter(word => word.length > 3 && !stopWords.has(word))
+  // Pattern-based title generation for common use cases
+  const patterns = [
+    // Question patterns
+    { pattern: /^(how to|how do i|how can i)\s+(.+)/i, template: (match: RegExpMatchArray) => `How to ${match[2].substring(0, 30)}` },
+    { pattern: /^(what is|what are|what's)\s+(.+)/i, template: (match: RegExpMatchArray) => `About ${match[2].substring(0, 35)}` },
+    { pattern: /^(why does|why do|why is|why are)\s+(.+)/i, template: (match: RegExpMatchArray) => `Why ${match[2].substring(0, 35)}` },
+    { pattern: /^(when to|when do|when is)\s+(.+)/i, template: (match: RegExpMatchArray) => `When ${match[2].substring(0, 35)}` },
+    { pattern: /^(where to|where do|where is)\s+(.+)/i, template: (match: RegExpMatchArray) => `Where ${match[2].substring(0, 35)}` },
     
-    for (const word of aiWords.slice(0, 2)) {
-      if (!significantWords.includes(word.charAt(0).toUpperCase() + word.slice(1))) {
-        significantWords.push(word.charAt(0).toUpperCase() + word.slice(1))
+    // Task patterns
+    { pattern: /^(create|make|build|generate|write)\s+(.+)/i, template: (match: RegExpMatchArray) => `Create ${match[2].substring(0, 35)}` },
+    { pattern: /^(explain|describe|tell me about)\s+(.+)/i, template: (match: RegExpMatchArray) => `Explain ${match[2].substring(0, 35)}` },
+    { pattern: /^(help me|help with|assist with)\s+(.+)/i, template: (match: RegExpMatchArray) => `Help with ${match[2].substring(0, 30)}` },
+    { pattern: /^(show me|give me|provide)\s+(.+)/i, template: (match: RegExpMatchArray) => `Show ${match[2].substring(0, 35)}` },
+    
+    // Technical patterns
+    { pattern: /^(debug|fix|solve|troubleshoot)\s+(.+)/i, template: (match: RegExpMatchArray) => `Fix ${match[2].substring(0, 35)}` },
+    { pattern: /^(code|program|script|function)\s+(.+)/i, template: (match: RegExpMatchArray) => `Code ${match[2].substring(0, 35)}` },
+    { pattern: /^(analyze|review|check)\s+(.+)/i, template: (match: RegExpMatchArray) => `Analyze ${match[2].substring(0, 30)}` },
+  ]
+  
+  // Try pattern matching first
+  for (const { pattern, template } of patterns) {
+    const match = userMessage.match(pattern)
+    if (match) {
+      const title = template(match).replace(/[^\w\s-]/g, '').trim()
+      if (title.length > 3) {
+        return title.length > 45 ? title.substring(0, 42) + '...' : title
       }
     }
   }
   
-  // Create title
-  let title = significantWords.slice(0, 4).join(' ')
+  // Enhanced keyword extraction with context awareness
+  const technicalTerms = new Set(['api', 'database', 'frontend', 'backend', 'react', 'javascript', 'python', 'node', 'server', 'client', 'html', 'css', 'sql', 'json', 'xml', 'rest', 'graphql', 'docker', 'kubernetes', 'aws', 'azure', 'git', 'github', 'npm', 'yarn', 'webpack', 'typescript', 'angular', 'vue', 'mongodb', 'postgresql', 'mysql', 'redis', 'nginx', 'apache', 'linux', 'windows', 'mac', 'ios', 'android', 'mobile', 'web', 'app', 'application', 'framework', 'library', 'component', 'function', 'method', 'class', 'object', 'array', 'string', 'number', 'boolean', 'variable', 'constant', 'algorithm', 'data', 'structure', 'authentication', 'authorization', 'security', 'encryption', 'performance', 'optimization', 'testing', 'deployment', 'ci/cd', 'devops'])
   
-  // Fallback to first part of user message if no good words found
-  if (!title || title.length < 3) {
-    title = userMessage.substring(0, 40).replace(/[^\w\s]/g, ' ').trim()
+  const importantWords = new Set(['tutorial', 'guide', 'example', 'problem', 'solution', 'error', 'issue', 'bug', 'feature', 'improvement', 'optimization', 'configuration', 'setup', 'installation', 'implementation', 'integration', 'migration', 'update', 'upgrade', 'comparison', 'difference', 'best', 'practice', 'pattern', 'design', 'architecture', 'workflow', 'process', 'strategy', 'approach', 'method', 'technique', 'tool', 'service', 'platform', 'system', 'network', 'protocol', 'standard', 'specification', 'documentation', 'manual', 'reference', 'cheatsheet'])
+  
+  const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'shall'])
+  
+  // Extract meaningful words with priority scoring
+  const extractKeywords = (text: string) => {
+    return text
+      .replace(/[^\w\s-]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !stopWords.has(word.toLowerCase()))
+      .map(word => ({
+        word: word,
+        score: 
+          (technicalTerms.has(word.toLowerCase()) ? 3 : 0) +
+          (importantWords.has(word.toLowerCase()) ? 2 : 0) +
+          (word.length > 5 ? 1 : 0) +
+          (/^[A-Z]/.test(word) ? 1 : 0)
+      }))
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.word)
   }
   
-  // Ensure title isn't too long
-  if (title.length > 50) {
-    title = title.substring(0, 47) + '...'
+  // Get keywords from user message (prioritized) and AI response
+  const userKeywords = extractKeywords(userMessage).slice(0, 3)
+  const aiKeywords = extractKeywords(cleanResponse).slice(0, 2)
+  
+  // Combine keywords intelligently
+  const allKeywords = [...userKeywords]
+  for (const keyword of aiKeywords) {
+    if (!allKeywords.some(k => k.toLowerCase() === keyword.toLowerCase()) && allKeywords.length < 4) {
+      allKeywords.push(keyword)
+    }
+  }
+  
+  // Create title from keywords
+  let title = allKeywords
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .slice(0, 4)
+    .join(' ')
+  
+  // Fallback: extract first meaningful sentence or phrase from user message
+  if (!title || title.length < 5) {
+    // Try to get the main subject/object from the sentence
+    const cleanUser = userMessage.replace(/^(please|can you|could you|would you|help me|i need|i want|i'm trying to)\s+/i, '')
+    const words = cleanUser.split(/\s+/).slice(0, 6)
+    title = words.join(' ')
+  }
+  
+  // Final cleanup and length check
+  title = title.replace(/[^\w\s-]/g, ' ').replace(/\s+/g, ' ').trim()
+  
+  if (title.length > 45) {
+    title = title.substring(0, 42) + '...'
   }
   
   return title || 'New Conversation'
@@ -366,21 +414,34 @@ When referencing knowledge base content, please cite the sources appropriately. 
       }
     })
 
-    // Update conversation title if this is the first assistant response
-    if (!conversation.title || conversation.title === 'New Conversation' || conversation.title.length < 10) {
+    // Update conversation title if this is the first assistant response OR if the current title is poor quality
+    let updatedTitle = null
+    const shouldUpdateTitle = !conversation.title || 
+      conversation.title === 'New Conversation' || 
+      conversation.title.length < 10 ||
+      /^(new|untitled|conversation|chat)\s?\d*$/i.test(conversation.title) ||
+      conversation.title.split(' ').length < 2
+      
+    if (shouldUpdateTitle) {
       const cleanResponse = extractCleanResponse(response)
       const smartTitle = generateConversationTitle(message, cleanResponse)
-      await prisma.conversation.update({
-        where: { id: conversation.id },
-        data: { title: smartTitle }
-      })
-      console.log(`Updated conversation title to: "${smartTitle}"`)
-      console.log(`Clean response used for title: "${cleanResponse.substring(0, 100)}..."`)
+      
+      // Only update if the new title is actually better
+      if (smartTitle && smartTitle !== 'New Conversation' && smartTitle.length > 5) {
+        await prisma.conversation.update({
+          where: { id: conversation.id },
+          data: { title: smartTitle }
+        })
+        updatedTitle = smartTitle
+        console.log(`Updated conversation title from "${conversation.title}" to: "${smartTitle}"`)
+        console.log(`Clean response used for title: "${cleanResponse.substring(0, 100)}..."`)
+      }
     }
 
     return NextResponse.json({
       message: assistantMessage,
       conversationId: conversation.id,
+      updatedTitle: updatedTitle
     })
 
   } catch (error) {
