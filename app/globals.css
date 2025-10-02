@@ -151,6 +151,15 @@
       padding: 0.75rem;
       border-radius: 0.75rem;
     }
+    
+    /* Centered chat interface adjustments */
+    .centered-chat-container {
+      padding: 1rem;
+    }
+    
+    .centered-chat-input {
+      border-radius: 1rem;
+    }
   }
   
   /* Smooth scrolling for mobile */
