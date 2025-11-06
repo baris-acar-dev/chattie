@@ -14,7 +14,8 @@ import {
   GlobeAltIcon,
   BookOpenIcon,
   SparklesIcon,
-  CpuChipIcon
+  CpuChipIcon,
+  DocumentArrowDownIcon
 } from '@heroicons/react/24/outline'
 import ModelSelector from './ModelSelector'
 import ConversationList from './ConversationList'
@@ -22,6 +23,7 @@ import MessageList from './MessageList'
 import PreferencesModal from './PreferencesModal'
 import ThemeToggle from './ThemeToggle'
 import DocumentSelector from './DocumentSelector'
+import ExportModal from './ExportModal'
 import PersonaSelector from './PersonaSelector'
 import PromptTemplateManager from './PromptTemplateManager'
 import RAGManager from './RAGManager'
@@ -107,7 +109,9 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
   const [showTemplateManager, setShowTemplateManager] = useState(false)
   const [showKnowledgeBase, setShowKnowledgeBase] = useState(false)
   const [documentRefreshTrigger, setDocumentRefreshTrigger] = useState(0)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [isFeaturesExpanded, setIsFeaturesExpanded] = useState(false);
 
   useEffect(() => {
     loadModels()
@@ -128,17 +132,17 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
 
   const updateConversationTitle = (conversationId: string, newTitle: string) => {
     // Update the conversation title in the local state without refetching all conversations
-    setConversations(prev => 
-      prev.map(conv => 
-        conv.id === conversationId 
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === conversationId
           ? { ...conv, title: newTitle }
           : conv
       )
     )
-    
+
     // Update current conversation if it's the one being updated
     if (currentConversation?.id === conversationId) {
-      setCurrentConversation(prev => 
+      setCurrentConversation(prev =>
         prev ? { ...prev, title: newTitle } : prev
       )
     }
@@ -153,7 +157,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
       const response = await fetch(`/api/models?userId=${user.id}`)
       const data = await response.json()
       setModels(data.models || [])
-      
+
       if (data.models?.length > 0) {
         setSelectedModel(data.models[0].name)
       }
@@ -190,10 +194,10 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
           model: selectedModel
         })
       })
-      
+
       const data = await response.json()
       const newConversation = { ...data.conversation, messages: [] }
-      
+
       setConversations(prev => [newConversation, ...prev])
       setCurrentConversation(newConversation)
       toast.success('New conversation created')
@@ -220,13 +224,13 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
       await fetch(`/api/conversations/${conversationId}`, {
         method: 'DELETE'
       })
-      
+
       setConversations(prev => prev.filter(c => c.id !== conversationId))
-      
+
       if (currentConversation?.id === conversationId) {
         setCurrentConversation(null)
       }
-      
+
       toast.success('Conversation deleted')
     } catch (error) {
       console.error('Error deleting conversation:', error)
@@ -256,7 +260,8 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
       }))
     }
 
-    try {      const response = await fetch('/api/chat', {
+    try {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -300,7 +305,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
             }
           ]
         }))
-        
+
         // Update conversation title if it was generated/updated
         if (data.updatedTitle && data.updatedTitle !== currentConversation.title) {
           updateConversationTitle(currentConversation.id, data.updatedTitle)
@@ -320,11 +325,50 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
       sendMessage()
     }
   }
+  /* 
+  {conversations.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7, duration: 0.5 }}
+                    className="mt-8"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Conversations</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {conversations.slice(0, 6).map((conversation, index) => (
+                        <motion.button
+                          key={conversation.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.8 + index * 0.1, duration: 0.3 }}
+                          onClick={() => {
+                            selectConversation(conversation.id)
+                            setSidebarOpen(true)
+                          }}
+                          className="text-left p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all"
+                        >
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate mb-2">
+                            {conversation.title}
+                          </h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                            {formatDistanceToNow(new Date(conversation.updatedAt), { addSuffix: true })}
+                          </p>
+                          {conversation.messages.length > 0 && (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                              {conversation.messages[conversation.messages.length - 1]?.content}
+                            </p>
+                          )}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+  */
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -349,7 +393,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                   <PlusIcon className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <ModelSelector
                 models={models}
                 selectedModel={selectedModel}
@@ -431,79 +475,103 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                 </button>
               </div>
             </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <div className="flex-1">
-                  <PersonaSelector
-                    selectedPersona={selectedTemplate}
-                    onPersonaChange={handleTemplateChange}
-                    userId={user.id}
-                  />
-                </div>
-                <button
-                  onClick={() => setShowTemplateManager(true)}
-                  className="flex items-center justify-center w-10 h-10 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
-                  title="Manage Personas"
-                >
-                  <SparklesIcon className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="flex items-center justify-center space-x-4">
-                <div className="relative">
-                  <button
-                    onClick={() => setWebScrapingEnabled(!webScrapingEnabled)}
-                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
-                      webScrapingEnabled 
-                        ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30' 
-                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                    title={webScrapingEnabled ? "Web Scraping: ON" : "Web Scraping: OFF"}
-                  >
-                    <GlobeAltIcon className="w-5 h-5" />
-                  </button>
-                  {webScrapingEnabled && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
-                  )}
-                </div>
-                
-                <div className="relative">
-                  <button
-                    onClick={() => setRagEnabled(!ragEnabled)}
-                    className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
-                      ragEnabled 
-                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30' 
-                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                    title={ragEnabled ? "Knowledge Base: ON" : "Knowledge Base: OFF"}
-                  >
-                    <BookOpenIcon className="w-5 h-5" />
-                  </button>
-                  {ragEnabled && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white dark:border-gray-900"></div>
-                  )}
-                </div>
+
+            {/* Collapsible Feature Bar */}
+            <div
+              className="relative"
+              onMouseEnter={() => setIsFeaturesExpanded(true)}
+              onMouseLeave={() => setIsFeaturesExpanded(false)}
+            >
+              {/* Always visible trigger area (the dots) */}
+              <div className="flex items-center justify-center space-x-2 py-2 cursor-pointer rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <div className="w-2 h-2 bg-purple-500 rounded-full" title="Persona Selected"></div>
+                <div className={`w-2 h-2 rounded-full ${webScrapingEnabled ? 'bg-green-500' : 'bg-gray-300'}`} title={`Web Scraping: ${webScrapingEnabled ? 'ON' : 'OFF'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${ragEnabled ? 'bg-blue-500' : 'bg-gray-300'}`} title={`Knowledge Base: ${ragEnabled ? 'ON' : 'OFF'}`}></div>
               </div>
 
-              {ragEnabled && (
-                <div className="mt-3">
-                  <DocumentSelector
-                    selectedDocuments={selectedDocuments}
-                    onSelectionChange={setSelectedDocuments}
-                    onDocumentsLoaded={(documents) => {
-                      if (documents.length > 0 && !ragEnabled) {
-                        toast('💡 Documents found! Enable Knowledge Base to use them in your chat.', {
-                          duration: 4000,
-                          icon: '📚'
-                        })
-                      }
-                    }}
-                    disabled={isLoading}
-                    refreshTrigger={documentRefreshTrigger}
-                  />
-                </div>
-              )}
+              {/* Collapsible content, controlled by state and framer-motion */}
+              <AnimatePresence>
+                {isFeaturesExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="absolute bottom-full left-0 right-0 mb-2 z-20"
+                  >
+                    <div className="space-y-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-1">
+                          <PersonaSelector
+                            selectedPersona={selectedTemplate}
+                            onPersonaChange={handleTemplateChange}
+                            userId={user.id}
+                          />
+                        </div>
+                        <button
+                          onClick={() => setShowTemplateManager(true)}
+                          className="flex items-center justify-center w-10 h-10 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors"
+                          title="Manage Personas"
+                        >
+                          <SparklesIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-center space-x-4">
+                        <div className="relative">
+                          <button
+                            onClick={() => setWebScrapingEnabled(!webScrapingEnabled)}
+                            className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${webScrapingEnabled
+                                ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
+                                : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                              }`}
+                            title={webScrapingEnabled ? "Web Scraping: ON" : "Web Scraping: OFF"}
+                          >
+                            <GlobeAltIcon className="w-5 h-5" />
+                          </button>
+                          {webScrapingEnabled && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                          )}
+                        </div>
+
+                        <div className="relative">
+                          <button
+                            onClick={() => setRagEnabled(!ragEnabled)}
+                            className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${ragEnabled
+                                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                                : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                              }`}
+                            title={ragEnabled ? "Knowledge Base: ON" : "Knowledge Base: OFF"}
+                          >
+                            <BookOpenIcon className="w-5 h-5" />
+                          </button>                          {ragEnabled && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+                          )}
+                        </div>
+                      </div>
+
+                      {ragEnabled && (
+                        <div className="mt-3">
+                          <DocumentSelector
+                            selectedDocuments={selectedDocuments}
+                            onSelectionChange={setSelectedDocuments}
+                            onDocumentsLoaded={(documents) => {
+                              if (documents.length > 0 && !ragEnabled) {
+                                toast('💡 Documents found! Enable Knowledge Base to use them in your chat.', {
+                                  duration: 4000,
+                                  icon: '📚'
+                                })
+                              }
+                            }}
+                            disabled={isLoading}
+                            refreshTrigger={documentRefreshTrigger}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -518,7 +586,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
               >
                 <ChatBubbleLeftIcon className="w-5 h-5" />
               </button>
-              
+
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {currentConversation?.title || 'Select a conversation'}
@@ -548,6 +616,16 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                 <BookOpenIcon className="w-4 h-4" />
                 <span>Knowledge Base</span>
               </button>
+              {currentConversation && (
+                <button
+                  onClick={() => setExportModalOpen(true)}
+                  className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 px-2 py-1 rounded-md transition-colors"
+                  title="Export Conversation"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" />
+                  <span>Export</span>
+                </button>
+              )}
               <button
                 onClick={() => setPreferencesOpen(true)}
                 className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-2 py-1 rounded-md transition-colors"
@@ -569,16 +647,15 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                 onPersonaChange={handleTemplateChange}
                 userId={user.id}
               />
-              
+
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <button
                     onClick={() => setWebScrapingEnabled(!webScrapingEnabled)}
-                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-                      webScrapingEnabled 
-                        ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30' 
-                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
+                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${webScrapingEnabled
+                      ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
+                      : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
                     title={webScrapingEnabled ? "Web Scraping: ON" : "Web Scraping: OFF"}
                   >
                     <GlobeAltIcon className="w-4 h-4" />
@@ -587,15 +664,14 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                     <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border border-white dark:border-gray-900"></div>
                   )}
                 </div>
-                
+
                 <div className="relative">
                   <button
                     onClick={() => setRagEnabled(!ragEnabled)}
-                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-                      ragEnabled 
-                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30' 
-                        : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
+                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${ragEnabled
+                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                      : 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
                     title={ragEnabled ? "Knowledge Base: ON" : "Knowledge Base: OFF"}
                   >
                     <BookOpenIcon className="w-4 h-4" />
@@ -632,15 +708,15 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
         <div className="flex-1 overflow-y-auto">
           {currentConversation ? (
             <div className="p-4 md:p-6">
-              <MessageList 
-                messages={currentConversation.messages} 
+              <MessageList
+                messages={currentConversation.messages}
                 isLoading={isLoading}
               />
               <div ref={messagesEndRef} />
             </div>
           ) : (
             <div className="flex items-center justify-center h-full p-4">
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -654,7 +730,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                   >
                     <ChatBubbleLeftIcon className="w-16 h-16 md:w-20 md:h-20 text-blue-500 dark:text-blue-400 mx-auto mb-6" />
                   </motion.div>
-                  <motion.h1 
+                  <motion.h1
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
@@ -662,7 +738,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                   >
                     Welcome to Chattie
                   </motion.h1>
-                  <motion.p 
+                  <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
@@ -673,11 +749,11 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                 </div>
 
                 {/* Centered Chat Input */}
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5, duration: 0.5 }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 backdrop-blur-sm"
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 backdrop-blur-sm mt-8"
                 >
                   {/* Model Selection */}
                   <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -690,7 +766,7 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
                         onModelChange={setSelectedModel}
                       />
                     </div>
-                    
+
                     {/* Quick Actions */}
                     <div className="flex items-center space-x-2">
                       <button
@@ -742,81 +818,15 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
 
                     {/* Feature Toggles */}
                     <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-gray-200 dark:border-gray-600">
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={webScrapingEnabled}
-                          onChange={(e) => setWebScrapingEnabled(e.target.checked)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300 flex items-center space-x-1">
-                          <GlobeAltIcon className="w-4 h-4" />
-                          <span>Web scraping</span>
-                        </span>
-                      </label>
-                      
-                      <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={ragEnabled}
-                          onChange={(e) => setRagEnabled(e.target.checked)}
-                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300 flex items-center space-x-1">
-                          <BookOpenIcon className="w-4 h-4" />
-                          <span>Knowledge base</span>
-                        </span>
-                      </label>
-
-                      <button
-                        onClick={() => setShowKnowledgeBase(true)}
-                        className="flex items-center space-x-1 px-3 py-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                      >
-                        <DocumentTextIcon className="w-4 h-4" />
-                        <span>Manage docs</span>
-                      </button>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Press Ctrl+Enter to send • Shift+Enter for new line
+                      </div>
                     </div>
                   </div>
                 </motion.div>
 
                 {/* Recent Conversations Preview */}
-                {conversations.length > 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7, duration: 0.5 }}
-                    className="mt-8"
-                  >
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Conversations</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {conversations.slice(0, 6).map((conversation, index) => (
-                        <motion.button
-                          key={conversation.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.8 + index * 0.1, duration: 0.3 }}
-                          onClick={() => {
-                            selectConversation(conversation.id)
-                            setSidebarOpen(true)
-                          }}
-                          className="text-left p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all"
-                        >
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate mb-2">
-                            {conversation.title}
-                          </h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                            {formatDistanceToNow(new Date(conversation.updatedAt), { addSuffix: true })}
-                          </p>
-                          {conversation.messages.length > 0 && (
-                            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
-                              {conversation.messages[conversation.messages.length - 1]?.content}
-                            </p>
-                          )}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
+                
               </motion.div>
             </div>
           )}
@@ -924,6 +934,16 @@ export default function ChatInterface({ user }: ChatInterfaceProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Export Modal */}
+      {currentConversation && (
+        <ExportModal
+          isOpen={exportModalOpen}
+          onClose={() => setExportModalOpen(false)}
+          conversationId={currentConversation.id}
+          conversationTitle={currentConversation.title}
+        />
+      )}
     </div>
   )
 }

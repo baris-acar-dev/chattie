@@ -18,10 +18,12 @@ import {
   PlusIcon,
   FolderPlusIcon,
   EllipsisVerticalIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  DocumentArrowDownIcon
 } from '@heroicons/react/24/outline'
 import { formatDistanceToNow, isToday, isYesterday, isThisWeek } from 'date-fns'
 import toast from 'react-hot-toast'
+import ExportModal from './ExportModal'
 
 interface Message {
   id: string
@@ -79,6 +81,8 @@ export default function ConversationList({
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null)
   const [editingFolderName, setEditingFolderName] = useState('')
   const [movingConversationId, setMovingConversationId] = useState<string | null>(null)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [exportingConversation, setExportingConversation] = useState<{id: string, title: string} | null>(null)
 
   const loadFolders = async () => {
     try {
@@ -618,6 +622,20 @@ export default function ConversationList({
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
+                    setExportingConversation({
+                      id: conversation.id,
+                      title: conversation.title
+                    })
+                    setExportModalOpen(true)
+                  }}
+                  className="p-1 text-gray-400 dark:text-gray-500 hover:text-green-500 dark:hover:text-green-400 transition-colors"
+                  title="Export conversation"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
                     onDeleteConversation(conversation.id)
                   }}
                   className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
@@ -764,6 +782,19 @@ export default function ConversationList({
           </div>
         )}
       </div>
+
+      {/* Export Modal */}
+      {exportingConversation && (
+        <ExportModal
+          isOpen={exportModalOpen}
+          onClose={() => {
+            setExportModalOpen(false)
+            setExportingConversation(null)
+          }}
+          conversationId={exportingConversation.id}
+          conversationTitle={exportingConversation.title}
+        />
+      )}
     </div>
   )
 }
